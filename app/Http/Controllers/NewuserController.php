@@ -17,7 +17,6 @@ class NewuserController extends Controller
         $users = DB::table('newusers')->paginate(10);
         return view('newuser',['data'=>$users]);   
     }
-
     public function addUser(Request $req)
     {
         $req->validate([
@@ -60,41 +59,89 @@ class NewuserController extends Controller
         $users = DB::table('newusers')->where('id',$id)->get();
         return view('newuser',['data'=>$users]);
     }
+    // public function updateUser(Request $req, string $id)
+    // {
+    //     $userImage=DB::table('newusers')->where('id',$id)->value('image_path');
+    //     $user = DB::table('newusers')->where('id',$id)
+    //         ->update([
+    //         'name' => $req->name,
+    //         'email' => $req->email,
+    //         'age' => $req->age,
+    //         'city' => $req->city,
+    //     ]);
+
+    //     if($user)
+    //     { 
+    //         if($req->image != "")
+    //         {                
+    //             File::delete(public_path('images/'.$userImage));
+    //             $image = $req->image;
+    //             $est = $image->getClientOriginalExtension();
+    //             $imageName = time().'.'.$ext;       
+    //             $image->move(public_path('images'), $imageName);
+    //             DB::table('newusers')->where('id',$id)
+    //             ->update([
+    //             'image_path' => $imageName,
+    //             ]);
+    //             return redirect()->route('view.user');
+    //         }
+    //         else{
+    //             return redirect()->route('view.user');
+    //         }
+    //     }
+    //     else
+    //     {
+    //         echo '<h1>Error!</h1>';
+    //     }
+    // }
+
+
+
     public function updateUser(Request $req, string $id)
     {
-        $userImage=DB::table('newusers')->where('id',$id)->value('image_path');
-        $user = DB::table('newusers')->where('id',$id)
-            ->update([
-            'name' => $req->name,
-            'email' => $req->email,
-            'age' => $req->age,
-            'city' => $req->city,
-        ]);
-
-        if($user)
-        { 
-            if($req->image != "")
-            {                
-                File::delete(public_path('images/'.$userImage));
-                $image = $req->image;
-                $est = $image->getClientOriginalExtension();
-                $imageName = time().'.'.$ext;       
-                $image->move(public_path('images'), $imageName);
-                DB::table('newusers')->where('id',$id)
-                ->update([
+              
+        $imageOldName=DB::table('newusers')->where('id',$id)->value('image_path');
+        if ($req->image != "") {
+            $imageName = time().'.'.$req->image->extension(); 
+            $req->image->move(public_path('images'), $imageName);
+            $user_update = DB::table('newusers')->where('id',$id)->update([
+                'name' => $req->name,
+                'email' => $req->email,
+                'age' => $req->age,
+                'city' => $req->city,
                 'image_path' => $imageName,
-                ]);
-                return redirect()->route('view.user');
+            ]);
+            if($user_update){
+                if(File::exists(public_path('images/'.$imageOldName))){
+                    File::delete(public_path('images/'.$imageOldName));                
+                    return redirect()->route('view.user')->withSuccess('Successfully update');
+                }
+                else{
+                    return redirect()->route('view.user')->withSuccess('Successfully update');
+                }
             }
             else{
-                return redirect()->route('view.user');
+                echo "Error!";
             }
         }
-        else
-        {
-            echo '<h1>Error!</h1>';
+        else {
+            $user_update = DB::table('newusers')->where('id',$id)->update([
+                'name' => $req->name,
+                'email' => $req->email,
+                'age' => $req->age,
+                'city' => $req->city,
+            ]);
+            if($user_update){                           
+                return redirect()->route('view.user')->withSuccess('Successfully update');
+            }
+            else{
+                echo "Error!";
+            }
         }
+
     }
+
+
     public function fetchData(string $id)
     {
         $users = DB::table('newusers')->find($id);
